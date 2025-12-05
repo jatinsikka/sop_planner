@@ -1,0 +1,2 @@
+"""Pipeline: retrieve → plan → execute."""
+

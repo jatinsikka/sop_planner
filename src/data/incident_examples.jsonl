@@ -1,0 +1,100 @@
+{"incident_id":"INC-001","text":"Blue indicator on the main machine is flashing and pressure looks low; run the low-pressure diagnostic and confirm sensor readings.", "labels":{"sop_id":"SOP-001"}}
+{"incident_id":"INC-002","text":"Red alarm light on the main machine is active; clear the alarm by performing the standard reset.", "labels":{"sop_id":"SOP-002"}}
+{"incident_id":"INC-003","text":"Machine is idle and needs to be started up from a powered-off or ready state.", "labels":{"sop_id":"SOP-003"}}
+{"incident_id":"INC-004","text":"Machine must be safely shut down from running state for maintenance.", "labels":{"sop_id":"SOP-004"}}
+{"incident_id":"INC-005","text":"Temperature warning: red overheat light is on; check temperature sensor and trigger cooling override.", "labels":{"sop_id":"SOP-005"}}
+{"incident_id":"INC-006","text":"Cycle jam indicator is blinking; clear the jam with the standard cycle-clear procedure.", "labels":{"sop_id":"SOP-006"}}
+{"incident_id":"INC-007","text":"Motor fault light is on; reset the motor and verify current sensor is normal.", "labels":{"sop_id":"SOP-007"}}
+{"incident_id":"INC-008","text":"Calibration prompt yellow light is on; run sensor calibration mode on the machine.", "labels":{"sop_id":"SOP-008"}}
+{"incident_id":"INC-009","text":"Machine vibration warning is triggered; read vibration sensor, run diagnostics, and report if still abnormal.", "labels":{"sop_id":"SOP-009"}}
+{"incident_id":"INC-010","text":"Silent alert LED is blinking even though audible alarm is off; perform silent alert reset.", "labels":{"sop_id":"SOP-010"}}
+{"incident_id":"INC-011","text":"Main machine is completely unresponsive to button presses; perform a full power cycle and try starting again.", "labels":{"sop_id":"SOP-011"}}
+{"incident_id":"INC-012","text":"Purple diagnostic light is flashing; machine should be switched into diagnostic mode.", "labels":{"sop_id":"SOP-012"}}
+{"incident_id":"INC-013","text":"Machine is stuck in diagnostic mode and won’t return to normal operation; exit diagnostic mode using the proper hold sequence.", "labels":{"sop_id":"SOP-013"}}
+{"incident_id":"INC-014","text":"Cooling fan speed warning is active; check fan speed sensor and boost fan speed if low.", "labels":{"sop_id":"SOP-014"}}
+{"incident_id":"INC-015","text":"Security lockout has been triggered on the machine; reset the lockout and operate the safety lever.", "labels":{"sop_id":"SOP-015"}}
+{"incident_id":"INC-016","text":"Alignment indicator is blinking; run the automatic alignment validation on the machine.", "labels":{"sop_id":"SOP-016"}}
+{"incident_id":"INC-017","text":"System heartbeat/status LED is off; wake up the system and wait for heartbeat to resume.", "labels":{"sop_id":"SOP-017"}}
+{"incident_id":"INC-018","text":"Low flow rate error is displayed; check the flow sensor and perform a flow reset.", "labels":{"sop_id":"SOP-018"}}
+{"incident_id":"INC-019","text":"Operator requested a full test of all panel buttons on the machine.", "labels":{"sop_id":"SOP-019"}}
+{"incident_id":"INC-020","text":"Main lever on the machine feels stuck or sluggish; attempt to free the lever and report if still jammed.", "labels":{"sop_id":"SOP-020"}}
+{"incident_id":"INC-021","text":"A cube on Table 1 needs to be relocated into the machine’s tray area for processing.", "labels":{"sop_id":"SOP-021"}}
+{"incident_id":"INC-022","text":"A cylinder has fallen to the floor; it should be picked up and returned to Table 1.", "labels":{"sop_id":"SOP-022"}}
+{"incident_id":"INC-023","text":"Several balls are scattered on Table 1; gather them and place them into the ball basket.", "labels":{"sop_id":"SOP-023"}}
+{"incident_id":"INC-024","text":"An unknown or foreign object is sitting on Table 1; remove it and put it in the disposal bin.", "labels":{"sop_id":"SOP-024"}}
+{"incident_id":"INC-025","text":"Blocks on Table 1 are mixed; sort them by size into the appropriate zones.", "labels":{"sop_id":"SOP-025"}}
+{"incident_id":"INC-026","text":"The machine needs a tool that is currently on Table 1; deliver the tool to the machine’s side shelf.", "labels":{"sop_id":"SOP-026"}}
+{"incident_id":"INC-027","text":"Operator wants Table 1 cleared completely of all objects and items stored away.", "labels":{"sop_id":"SOP-027"}}
+{"incident_id":"INC-028","text":"A marker is required at the machine console but is currently on Table 1; retrieve it and place it by the console.", "labels":{"sop_id":"SOP-028"}}
+{"incident_id":"INC-029","text":"A heavy block on Table 1 is in the wrong location and must be moved safely to the floor zone.", "labels":{"sop_id":"SOP-029"}}
+{"incident_id":"INC-030","text":"Cylinders on Table 1 are lying randomly; orient them upright and align them along the alignment strip.", "labels":{"sop_id":"SOP-030"}}
+{"incident_id":"INC-031","text":"A parts box on Table 1 is needed next to the machine; transport it to the tool shelf near the machine.", "labels":{"sop_id":"SOP-031"}}
+{"incident_id":"INC-032","text":"Loose nuts are scattered near Table 1; collect them and drop them into the designated parts cup.", "labels":{"sop_id":"SOP-032"}}
+{"incident_id":"INC-033","text":"A spare motor cover is currently on Table 1 and should be stored back on the storage rack.", "labels":{"sop_id":"SOP-033"}}
+{"incident_id":"INC-034","text":"A cleaning cloth is needed at the machine, but it is on Table 1; move it to the side hook near the machine.", "labels":{"sop_id":"SOP-034"}}
+{"incident_id":"INC-035","text":"Mixed metallic and plastic items are on Table 1; separate them into metal and plastic bins.", "labels":{"sop_id":"SOP-035"}}
+{"incident_id":"INC-036","text":"An item on Table 1 needs to be picked up and placed on the machine’s inspection pad for inspection.", "labels":{"sop_id":"SOP-036"}}
+{"incident_id":"INC-037","text":"A box is blocking the edge of Table 1 and should be moved toward the back area of the table.", "labels":{"sop_id":"SOP-037"}}
+{"incident_id":"INC-038","text":"A ball is on Table 1 but belongs on Table 2; transfer it to the center of Table 2.", "labels":{"sop_id":"SOP-038"}}
+{"incident_id":"INC-039","text":"The machine needs a cylinder component that is currently on Table 1; bring it and place it near the machine slot.", "labels":{"sop_id":"SOP-039"}}
+{"incident_id":"INC-040","text":"Loose items on Table 1 must be picked and placed into the sorting tray for later processing.", "labels":{"sop_id":"SOP-040"}}
+{"incident_id":"INC-041","text":"Tools are scattered across Table 2; sort them by type and place them into the tool bin.", "labels":{"sop_id":"SOP-041"}}
+{"incident_id":"INC-042","text":"A box is sitting in the wrong spot on Table 2; move it to the designated back corner.", "labels":{"sop_id":"SOP-042"}}
+{"incident_id":"INC-043","text":"A screwdriver is needed at the machine but currently lies on Table 2; retrieve it and put it on the machine shelf.", "labels":{"sop_id":"SOP-043"}}
+{"incident_id":"INC-044","text":"Small parts on Table 2 are unorganized; sort them into two separate parts trays.", "labels":{"sop_id":"SOP-044"}}
+{"incident_id":"INC-045","text":"A ball is found on Table 2 and should be placed into the ball basket.", "labels":{"sop_id":"SOP-045"}}
+{"incident_id":"INC-046","text":"Extra or unneeded items are on Table 2; remove them and place them in the storage box.", "labels":{"sop_id":"SOP-046"}}
+{"incident_id":"INC-047","text":"A marker is lying on Table 2; it should be stored inside the marker holder.", "labels":{"sop_id":"SOP-047"}}
+{"incident_id":"INC-048","text":"Boxes on Table 2 are misaligned; reposition them into a straight line along the alignment edge.", "labels":{"sop_id":"SOP-048"}}
+{"incident_id":"INC-049","text":"A cylinder is on Table 2 but should be on Table 1; move it to the drop zone on Table 1.", "labels":{"sop_id":"SOP-049"}}
+{"incident_id":"INC-050","text":"Loose screws are scattered on Table 2; gather them and drop them into the screw cup.", "labels":{"sop_id":"SOP-050"}}
+{"incident_id":"INC-051","text":"A cleaning brush is required at the machine; it is currently on Table 2 and needs to be brought to the machine side hook.", "labels":{"sop_id":"SOP-051"}}
+{"incident_id":"INC-052","text":"An unknown foreign item is sitting on Table 2; remove it and place it into the disposal bin.", "labels":{"sop_id":"SOP-052"}}
+{"incident_id":"INC-053","text":"Cylinders of different colors on Table 2 need to be separated into red and blue zones.", "labels":{"sop_id":"SOP-053"}}
+{"incident_id":"INC-054","text":"Small boxes on Table 2 should be stacked neatly on top of each other.", "labels":{"sop_id":"SOP-054"}}
+{"incident_id":"INC-055","text":"A specific part needed by the operator is on Table 2; deliver that part to the operator pad by the machine.", "labels":{"sop_id":"SOP-055"}}
+{"incident_id":"INC-056","text":"A heavy object on Table 2 must be safely relocated to a floor zone.", "labels":{"sop_id":"SOP-056"}}
+{"incident_id":"INC-057","text":"An item on Table 2 has been requested for inspection; place it onto the inspection pad.", "labels":{"sop_id":"SOP-057"}}
+{"incident_id":"INC-058","text":"A tool lying on Table 2 needs to be returned to the wall-mounted tool rack.", "labels":{"sop_id":"SOP-058"}}
+{"incident_id":"INC-059","text":"Items on Table 2 must be arranged neatly in rows according to the row layout.", "labels":{"sop_id":"SOP-059"}}
+{"incident_id":"INC-060","text":"A box on Table 2 must be transferred to Table 1 and placed in the center area.", "labels":{"sop_id":"SOP-060"}}
+{"incident_id":"INC-061","text":"The machine requires a reset that uses a screwdriver from Table 1 to operate the reset screw port.", "labels":{"sop_id":"SOP-061"}}
+{"incident_id":"INC-062","text":"A machine panel is loose; use a wrench from Table 2 to tighten the panel and then return the tool.", "labels":{"sop_id":"SOP-062"}}
+{"incident_id":"INC-063","text":"The machine won’t proceed until a cylinder from Table 1 is placed in the loading slot and the confirm button is pressed.", "labels":{"sop_id":"SOP-063"}}
+{"incident_id":"INC-064","text":"The machine intake cover is missing and is stored on Table 2; retrieve it and mount it on the intake port.", "labels":{"sop_id":"SOP-064"}}
+{"incident_id":"INC-065","text":"Labeling is required at the machine, and a marker from Table 2 must be brought to the label station.", "labels":{"sop_id":"SOP-065"}}
+{"incident_id":"INC-066","text":"Lubrication is required on the machine; the lube bottle on Table 1 needs to be delivered and placed near the maintenance port.", "labels":{"sop_id":"SOP-066"}}
+{"incident_id":"INC-067","text":"The machine’s output tray is full of parts; clear them and move them to the sorting area at Table 2.", "labels":{"sop_id":"SOP-067"}}
+{"incident_id":"INC-068","text":"Before starting a cycle, the machine needs a cube from Table 1 and a cylinder from Table 2 placed into slots A and B, followed by a cycle start.", "labels":{"sop_id":"SOP-068"}}
+{"incident_id":"INC-069","text":"A defective part is reported at the machine; remove it and send it to the reject bin on Table 1.", "labels":{"sop_id":"SOP-069"}}
+{"incident_id":"INC-070","text":"The machine area needs wiping and the cleaning cloth is currently on Table 1; bring it to the machine side hook.", "labels":{"sop_id":"SOP-070"}}
+{"incident_id":"INC-071","text":"A tool that belongs on Table 2 is currently at the machine; return it to Table 2.", "labels":{"sop_id":"SOP-071"}}
+{"incident_id":"INC-072","text":"The machine is overheating and the cooling fan is inactive; bring the cooling tool from Table 1 to the fan area and press cooling override.", "labels":{"sop_id":"SOP-072"}}
+{"incident_id":"INC-073","text":"Operator wants a status check on the machine, followed by moving a box from Table 2 into a staging area.", "labels":{"sop_id":"SOP-073"}}
+{"incident_id":"INC-074","text":"The machine operator needs small parts arranged near the machine; gather them from Table 2 to the side shelf.", "labels":{"sop_id":"SOP-074"}}
+{"incident_id":"INC-075","text":"Machine’s light guard is missing and is stored on Table 1; retrieve and reattach it to the designated fixture.", "labels":{"sop_id":"SOP-075"}}
+{"incident_id":"INC-076","text":"A test cycle requires a specific test object from Table 2 to be inserted into a test slot and the test button pressed.", "labels":{"sop_id":"SOP-076"}}
+{"incident_id":"INC-077","text":"An alarm is active because an item is jammed in the machine; remove the jammed object to Table 1’s inspection bin and then reset the alarm.", "labels":{"sop_id":"SOP-077"}}
+{"incident_id":"INC-078","text":"The machine reports a missing component which is located on Table 1; retrieve and insert it into the component slot.", "labels":{"sop_id":"SOP-078"}}
+{"incident_id":"INC-079","text":"The machine requires a cube from Table 1 and a rod from Table 2 placed into slots A and B before pressing confirm.", "labels":{"sop_id":"SOP-079"}}
+{"incident_id":"INC-080","text":"Operator wants the machine put into prep mode and then wants Table 1 cleared with items put into a storage bin.", "labels":{"sop_id":"SOP-080"}}
+{"incident_id":"INC-081","text":"A cycle that uses both tables requires a cube from Table 1 and a cylinder from Table 2 loaded into the machine before starting.", "labels":{"sop_id":"SOP-081"}}
+{"incident_id":"INC-082","text":"An alarm is active but the cause depends on the color of the alarm light; handle red, yellow, and blue lights differently using the standard rules.", "labels":{"sop_id":"SOP-082"}}
+{"incident_id":"INC-083","text":"Operator requests parts delivered in order: first part A from Table 1 then part B from Table 2, staged on the machine shelf and marked ready.", "labels":{"sop_id":"SOP-083"}}
+{"incident_id":"INC-084","text":"Items on Table 2 must be sorted and then the machine’s diagnostic panel read afterward.", "labels":{"sop_id":"SOP-084"}}
+{"incident_id":"INC-085","text":"Both Table 1 and Table 2 are cluttered; perform cross-station cleanup by moving all items into the storage bin.", "labels":{"sop_id":"SOP-085"}}
+{"incident_id":"INC-086","text":"The machine wants an item inspected: move it from the machine to the inspection pad on Table 1, then react based on a green or red signal.", "labels":{"sop_id":"SOP-086"}}
+{"incident_id":"INC-087","text":"Machine is stuck mid-cycle and requires a complex reset: stop, power off, retrieve alignment tool from Table 2, use it, then power on and restart.", "labels":{"sop_id":"SOP-087"}}
+{"incident_id":"INC-088","text":"Before restarting the machine, empty the output tray and store items from Table 1, then trigger restart on the machine.", "labels":{"sop_id":"SOP-088"}}
+{"incident_id":"INC-089","text":"Machine shows an error code; depending on which code appears, either fetch a part from Table 1, run diagnostics, or notify a technician.", "labels":{"sop_id":"SOP-089"}}
+{"incident_id":"INC-090","text":"A large part must be staged on a staging table and then moved again into the machine mount in a two-stage delivery.", "labels":{"sop_id":"SOP-090"}}
+{"incident_id":"INC-091","text":"System reset requires pressing reset on two different panels at the machine, then confirming lights are off.", "labels":{"sop_id":"SOP-091"}}
+{"incident_id":"INC-092","text":"An assembly operation needs a base plate from Table 2 and a top piece from Table 1 combined near the machine, then the assemble button pressed.", "labels":{"sop_id":"SOP-092"}}
+{"incident_id":"INC-093","text":"An alert is active and the workspace around Table 2 is messy; acknowledge the alert, clean the table into a bin, then restart the machine.", "labels":{"sop_id":"SOP-093"}}
+{"incident_id":"INC-094","text":"Machine won’t start unless the lever is in the down position; check lever position, adjust if needed, and then start the machine.", "labels":{"sop_id":"SOP-094"}}
+{"incident_id":"INC-095","text":"Which table to use depends on the indicator color: green means fetch a green item from Table 1, blue from Table 2, and place it into the correct machine slot.", "labels":{"sop_id":"SOP-095"}}
+{"incident_id":"INC-096","text":"A timed prep is needed: place a prep item from Table 1 on the machine pad, wait, then press prep followed by start.", "labels":{"sop_id":"SOP-096"}}
+{"incident_id":"INC-097","text":"Multiple objects from Table 2 need to be moved one-by-one onto the inspection pad for inspection.", "labels":{"sop_id":"SOP-097"}}
+{"incident_id":"INC-098","text":"Machine requests a tool-assisted reset: press the initial reset, fetch a special tool from Table 2, use it at the reset port, then press final reset.", "labels":{"sop_id":"SOP-098"}}
+{"incident_id":"INC-099","text":"Machine shows both red and green lights; for red you must reset, and for green you must fetch an item from Table 1 and place it into a green slot.", "labels":{"sop_id":"SOP-099"}}
+{"incident_id":"INC-100","text":"Machine has entered safe mode; acknowledge the emergency, install a safety blocker from Table 1 into the safety port, then initiate the restart sequence.", "labels":{"sop_id":"SOP-100"}}

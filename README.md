@@ -1,215 +1,109 @@
-# 1. Train retriever (dual-encoder) on 100 SOPs
-# Recommended: 50 epochs with batch_size 8 for stable convergence
-python src/retrieval/build_dual_encoder.py
+# SOP-Guided Robotic Task Planning
 
-# 2. Train reranker (cross-encoder) for precision reranking
-# Recommended: 5 epochs with batch_size 8
-python src/retrieval/train_reranker.py
+An end-to-end system that retrieves Standard Operating Procedures (SOPs) from natural language incident descriptions and generates executable robot plans. Built as the "brain" of a larger autonomous robotics project — this repo handles perception-to-plan, while the physical execution runs on a [Unitree G1 humanoid via MuJoCo](https://github.com/jatinsikka/mujoco_G1_AMO).
 
-# 3. Train planner (Flan-T5 + LoRA) on 100 SOPs
-# Recommended: 10 epochs with batch_size 4 for good generalization
-python src/planner/train_planner_lora.py
+> **Status:** Active development. The DL pipeline is functional; integration with the MuJoCo execution side is ongoing.
 
-# 4. Build FAISS index with trained encoder (run after training retriever)
-python src/cli/demo.py build-index
+## How It Works
 
-# 5. Test retrieval on 100 SOPs
-python src/cli/demo.py retrieve --q "Machine A pressure is low"
+```
+Incident Description ──► Dual-Encoder Retriever ──► Top-K SOPs ──► LoRA Planner ──► JSON Plan ──► Robot Execution
+                           (BERT + InfoNCE)           (FAISS)       (Flan-T5)        (7 skills)     (MuJoCo stub)
+```
 
-# 6. Test full pipeline (retrieval + reranking + planning)
-python src/cli/demo.py plan --q "Machine A pressure is low"
+1. **Retrieval** — A dual-encoder BERT model, trained with contrastive learning (InfoNCE loss), encodes incident text and SOP documents into a shared embedding space. FAISS indexes all SOPs for sub-millisecond lookup.
+2. **Planning** — A Flan-T5 model fine-tuned with LoRA takes the retrieved SOP and generates a structured JSON plan constrained to 7 robot primitives (`walk_to`, `press_button`, `wait`, `read_sensor`, `pick`, `place`, `notify`).
+3. **Execution** — Plans are validated against a skill whitelist and dispatched to a MuJoCo skill API (currently mocked; real integration via the companion repo).
 
-# 7. Test full pipeline with execution
-python src/cli/demo.py exec --q "Machine A pressure is low"
+## Results
 
-# 8. Comprehensive evaluation
-python src/eval/evaluate_all.py
+| Model | Recall@1 | Recall@5 | MRR | Latency |
+|-------|----------|----------|-----|---------|
+| **Trained Dual-Encoder BERT** | **0.96** | **0.99** | **0.98** | **58ms** |
+| TF-IDF (baseline) | 0.96 | 0.99 | 0.98 | 1.6ms |
+| Pretrained BERT (zero-shot) | 0.22 | 0.50 | 0.31 | 60ms |
+| Ollama RAG (zero-shot) | 0.95 | 1.00 | 0.97 | 2297ms |
 
+| Planner Metric | Heuristic Baseline | Flan-T5 + LoRA |
+|----------------|-------------------|----------------|
+| Plan F1 | 0.45 | **0.78** |
+| Execution Success | 0.60 | **0.95** |
+| Valid JSON Rate | 0.80 | **0.98** |
 
+Training the dual-encoder on just 100 SOPs improves Recall@1 by **336%** over pretrained BERT. The LoRA planner trains only **0.2%** of parameters (0.5M / 250M) and achieves 78% F1.
 
-SOP → High-Level Planner → MuJoCo Executor
-========================================
+## Dataset
 
-This repository provides a minimal, fully-local skeleton to:
-- Train on SOPs so the system understands incidents, retrieves the right SOP (retrieval baseline = BERT with a robust TF-IDF/FAISS fallback), and generates a structured JSON plan using an instruction model (Flan-T5 with LoRA via PEFT).
-- Execute the plan via a small MuJoCo skill API (here mocked with a dummy adapter).
+100 synthetic manufacturing SOPs across three categories:
+- **Machine Control** (SOP-001 to SOP-020): Pressure warnings, temperature alerts, startup/shutdown
+- **Table Manipulation** (SOP-021 to SOP-060): Object handling, tool management, part organization
+- **Complex Workflows** (SOP-061 to SOP-100): Multi-step emergency procedures, conditional logic
 
-Everything is designed to run locally with tiny dummy datasets and safe fallbacks where pretrained checkpoints may not yet be available.
+Plus 100 incident examples with ground-truth SOP labels for evaluation.
 
-Quickstart
-----------
+## Quickstart
 
 ```bash
 python -m venv .venv
-# Linux/macOS:
-source .venv/bin/activate
-# Windows PowerShell:
-# .venv\Scripts\Activate.ps1
-
+source .venv/bin/activate  # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-make build-index
-make plan Q="Machine A red light; pressure low"
-make exec Q="Machine A red light; pressure low"
-```
 
-Dataset
--------
-
-**100 Standard Operating Procedures (SOPs)** covering:
-- **Machine control** (SOP-001 to SOP-020): Pressure warnings, alarms, startups, shutdowns, diagnostics, sensor reads
-- **Table 1 manipulation** (SOP-021 to SOP-040): Object handling, sorting, delivery, retrieval
-- **Table 2 manipulation** (SOP-041 to SOP-060): Tool management, part organization, cross-table transfers
-- **Complex workflows** (SOP-061 to SOP-100): Multi-step procedures, conditional logic, error handling, dual-object operations
-
-**Data format** (`src/data/sop_examples.json`):
-```json
-{
-  "sop_id": "SOP-001",
-  "title": "Low Pressure Warning",
-  "condition": "Blue indicator is flashing",
-  "steps": ["Walk to Machine", "Read pressure_sensor", ...],
-  "equipment": ["machine", "pressure_sensor", ...]
-}
-```
-
-**100 Incident Examples** (`src/data/incident_examples.json`):
-- Diverse incidents sampled from SOP conditions and contextual variations
-- Used for retrieval evaluation and pipeline testing
-
-
-
-Training
---------
-
-### With 100 SOPs and 100 Incidents
-
-**Optimal training hyperparameters (already configured in YAML):**
-
-```bash
-# Train retriever (dual-encoder BERT) - 50 epochs, batch 8
+# Train retriever (dual-encoder BERT) — ~2-5 min
 python src/retrieval/build_dual_encoder.py
-# Saves: artifacts/retriever_bert/model_q, model_p, tokenizer, index/
 
-# Train planner (Flan-T5 + LoRA) - 10 epochs, batch 4, r=32, alpha=64
+# Train planner (Flan-T5 + LoRA) — ~1-2 min
 python src/planner/train_planner_lora.py
-# Saves: artifacts/planner_lora/adapter, tokenizer/
 
-# Rebuild index after training (critical step!)
+# Build FAISS index
 python src/cli/demo.py build-index
+
+# Run full pipeline
+python src/cli/demo.py plan --q "Machine A pressure is low"
+
+# Run with execution
+python src/cli/demo.py exec --q "Machine A pressure is low"
+
+# Evaluate on all 100 incidents
+python src/eval/evaluate_all.py
 ```
 
-**Override defaults with CLI arguments:**
+## Project Structure
 
-```bash
-# Custom retriever training (override config)
-python src/retrieval/build_dual_encoder.py --config config/retriever_config.yaml --epochs 100 --batch-size 16
-
-# Custom planner training
-python src/planner/train_planner_lora.py --epochs 20 --batch-size 8 --lora-r 64 --learning-rate 0.00005
+```
+src/
+├── retrieval/          # Dual-encoder BERT, FAISS indexing, Ollama RAG baseline
+├── planner/            # Flan-T5 + LoRA training and inference
+├── pipeline/           # End-to-end plan pipeline, skill definitions
+├── eval/               # Evaluation scripts, metrics, baseline comparisons
+├── data/               # 100 SOPs + 100 incidents (JSON)
+├── cli/                # Typer CLI (build-index, retrieve, plan, exec)
+├── env/                # MuJoCo skill API (stub)
+└── ner/                # Token labeling utilities
+config/                 # Training hyperparameters (YAML)
+artifacts/              # Trained model checkpoints and FAISS index (gitignored)
+tests/                  # Unit tests
 ```
 
-**Configuration files control training:**
-- `config/retriever_config.yaml`: Epochs (50), batch_size (8), LR (0.00005), warmup_steps (100)
-- `config/planner_config.yaml`: Epochs (10), batch_size (4), LoRA r=32/alpha=64, learning_rate (0.0001)
+## Architecture Details
 
-**Before Training (First Time):**
-```bash
-# Build FAISS index from 100 SOPs (optional on first run)
-python src/cli/demo.py build-index
-```
+| Component | Model | Details |
+|-----------|-------|---------|
+| Retriever | BERT-base-uncased (110M params) | Dual-encoder, InfoNCE loss, 50 epochs, batch size 8 |
+| Planner | Flan-T5-base (250M params) | LoRA r=32, alpha=64, 10 epochs, batch size 4 |
+| Reranker | DeBERTa-v3-base | Cross-encoder for precision reranking of top-K |
+| Index | FAISS | Flat index over 768-dim SOP embeddings |
 
-**Typical Training Times (single GPU):**
-- Retriever: ~50 epochs on 100 SOPs ≈ 2-5 minutes (batch_size=8)
-- Planner: ~10 epochs on 100 pairs ≈ 1-2 minutes (batch_size=4, LoRA is efficient)
-- Index building: <1 minute
+Configuration is driven by `config/retriever_config.yaml` and `config/planner_config.yaml`. CLI arguments override config values.
 
-**Monitoring Training Loss:**
-- Retriever loss should decrease from ~1.5 → ~0.2-0.5
-- Planner loss should decrease from ~5.0 → ~1.0-2.0
-- Both use gradient checkpointing for memory efficiency
+## Related Repo
 
+This project is the planning/DL side of a larger autonomous robotics system:
 
+- **This repo (`sop_planner`)** — SOP retrieval + plan generation (the "brain")
+- **[`mujoco_G1_AMO`](https://github.com/jatinsikka/mujoco_G1_AMO)** — Unitree G1 locomotion + manipulation in MuJoCo (the "body")
 
-Architecture
-------------
+The planner outputs structured JSON plans that map to robot primitives executable by the MuJoCo environment.
 
-| Component  | Model/Method                        | Dataset | Notes                                                       |
-|------------|-------------------------------------|---------|-------------------------------------------------------------|
-| Retrieval  | Dual-encoder BERT (InfoNCE)         | 100 SOPs| Contrastive learning on 100 SOP examples; 50 epoch default  |
-| Reranker   | DeBERTa-v3-base cross-encoder       | Static  | Simple [CLS] pooled + linear head for precision reranking    |
-| Planning   | Flan-T5 with LoRA (PEFT)            | 100 SOPs| 100 synthetic pairs (1 per SOP); 10 epoch default; r=32      |
-| Execution  | MuJoCo skill API (Dummy adapter)    | N/A     | Replace adapter with real MuJoCo bindings later             |
+## Paper
 
-**Config-Driven Training:**
-- `config/retriever_config.yaml`: 50 epochs, batch=8, warmup_steps=100, top_k reranking
-- `config/planner_config.yaml`: 10 epochs, batch=4, LoRA r=32/alpha=64, max_plan_length=30
-- All hyperparameters tunable via CLI (CLI args override config file)
-
-
-
-Model Swaps
------------
-- Retrieval: swap to E5 or BGE by changing the model name in `build_dual_encoder.py`.
-- Reranker: use a stronger cross-encoder such as DeBERTa-v3-large.
-- Planner: swap to Llama-3-8B and train via QLoRA (PEFT supports this).
-
-MuJoCo Integration
-------------------
-Replace the dummy adapter with a real MuJoCo interface in `src/env/mujoco_stub.py`. Map SOP names to your MJCF actuator/sensor names (e.g., button `green_reset` → `act_green_reset`; sensor `pressure_gauge_A`).
-
-CLI
----
-Typer CLI: `src/cli/demo.py`
-- build-index: embed SOPs and build FAISS (or fallback)
-- retrieve: `--q "incident text"`
-- plan: `--q "incident text"` (full pipeline to JSON plan)
-- exec: `--q "incident text"` (pipeline + dummy execution)
-
-OpenAI RAG
------------
-- Set `OPENAI_API_KEY` in your environment.
-- Generate a plan via RAG + OpenAI: `python src/cli/rag_openai.py plan --q "Machine A pressure is low" --k 5 --model gpt-4o-mini`
-- Output is strict JSON (goal, steps, fallback) and auto-appends a final `notify` step if missing.
-
-Makefile Targets
-----------------
-- build-index: builds retrieval model and index
-- plan: runs full pipeline and prints JSON
-- exec: runs pipeline + dummy execution
-- test: runs pytest
-
-Notes
------
-
-**With 100 SOPs and Incidents:**
-- Config files now tuned for larger dataset: retriever (50 epochs, batch_size=8), planner (10 epochs, batch_size=4, LoRA r=32)
-- Dual-encoder BERT trains on contrastive pairs from 100 SOPs using InfoNCE loss with batch negatives
-- LoRA adapter scales to r=32 for better capacity across 100 diverse SOP scenarios
-- FAISS index stores 100 SOP embeddings for fast retrieval (~500ms for top-5)
-- Reranker (DeBERTa) provides precision by re-scoring top-k candidates
-
-**Recommended Workflow:**
-1. Train retriever: `python src/retrieval/build_dual_encoder.py` (config controls hyperparameters)
-2. Build index: `python src/cli/demo.py build-index` (critical after training!)
-3. Train planner: `python src/planner/train_planner_lora.py`
-4. Evaluate: `python src/eval/evaluate_all.py` (runs on all 100 incidents)
-
-**Troubleshooting:**
-- If retrieval quality is poor, increase retriever epochs (config/retriever_config.yaml)
-- If planner generates invalid plans, increase LoRA r or training epochs
-- If memory issues, decrease batch_size in config files
-- If pretrained checkpoints aren't downloaded yet, fallback to TF-IDF or heuristic generation
-
-**Key Hyperparameters by Dataset Size:**
-- **Small** (~10 SOPs): epochs=5, batch_size=2, LoRA r=8
-- **Medium** (~100 SOPs): epochs=50, batch_size=8, LoRA r=32 [CURRENT]
-- **Large** (~1000+ SOPs): epochs=100+, batch_size=32, LoRA r=64, with validation set
-
-**Default Fallbacks:**
-- If pretrained checkpoints missing → uses TF-IDF + heuristic fallback
-- If model inference fails → heuristic planner generates backup plan
-- All plans validated against safety whitelist (8 allowed skills)
-
-
-
-
+See [`DL_Project_report.pdf`](DL_Project_report.pdf) for the full writeup, including ablation studies and error analysis.

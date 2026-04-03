@@ -2,23 +2,27 @@
 # Recommended: 50 epochs with batch_size 8 for stable convergence
 python src/retrieval/build_dual_encoder.py
 
-# 2. Train planner (Flan-T5 + LoRA) on 100 SOPs
+# 2. Train reranker (cross-encoder) for precision reranking
+# Recommended: 5 epochs with batch_size 8
+python src/retrieval/train_reranker.py
+
+# 3. Train planner (Flan-T5 + LoRA) on 100 SOPs
 # Recommended: 10 epochs with batch_size 4 for good generalization
 python src/planner/train_planner_lora.py
 
-# 3. Build FAISS index with trained encoder (run after training retriever)
+# 4. Build FAISS index with trained encoder (run after training retriever)
 python src/cli/demo.py build-index
 
-# 4. Test retrieval on 100 SOPs
+# 5. Test retrieval on 100 SOPs
 python src/cli/demo.py retrieve --q "Machine A pressure is low"
 
-# 5. Test full pipeline (retrieval + planning)
+# 6. Test full pipeline (retrieval + reranking + planning)
 python src/cli/demo.py plan --q "Machine A pressure is low"
 
-# 6. Test full pipeline with execution
+# 7. Test full pipeline with execution
 python src/cli/demo.py exec --q "Machine A pressure is low"
 
-# 7. Comprehensive evaluation
+# 8. Comprehensive evaluation
 python src/eval/evaluate_all.py
 
 
@@ -57,7 +61,7 @@ Dataset
 - **Table 2 manipulation** (SOP-041 to SOP-060): Tool management, part organization, cross-table transfers
 - **Complex workflows** (SOP-061 to SOP-100): Multi-step procedures, conditional logic, error handling, dual-object operations
 
-**Data format** (`src/data/sop_examples.jsonl`):
+**Data format** (`src/data/sop_examples.json`):
 ```json
 {
   "sop_id": "SOP-001",
@@ -68,7 +72,7 @@ Dataset
 }
 ```
 
-**100 Incident Examples** (`src/data/incident_examples.jsonl`):
+**100 Incident Examples** (`src/data/incident_examples.json`):
 - Diverse incidents sampled from SOP conditions and contextual variations
 - Used for retrieval evaluation and pipeline testing
 
@@ -160,6 +164,12 @@ Typer CLI: `src/cli/demo.py`
 - retrieve: `--q "incident text"`
 - plan: `--q "incident text"` (full pipeline to JSON plan)
 - exec: `--q "incident text"` (pipeline + dummy execution)
+
+OpenAI RAG
+-----------
+- Set `OPENAI_API_KEY` in your environment.
+- Generate a plan via RAG + OpenAI: `python src/cli/rag_openai.py plan --q "Machine A pressure is low" --k 5 --model gpt-4o-mini`
+- Output is strict JSON (goal, steps, fallback) and auto-appends a final `notify` step if missing.
 
 Makefile Targets
 ----------------

@@ -88,7 +88,7 @@ def main() -> None:
     # Load test data
     console.log("[dim]Loading test data...[/dim]")
     incidents = load_json("src/data/incident_examples.json", IncidentEntry, key="incident_examples")
-    console.log(f"[green]✓ Loaded {len(incidents)} test incidents[/green]\n")
+    console.log(f"[green]Loaded {len(incidents)} test incidents[/green]\n")
     
     # Evaluate BERT dual-encoder (baseline)
     console.print("[bold]1. Evaluating BERT Dual-Encoder (Baseline)[/bold]")
@@ -102,7 +102,8 @@ def main() -> None:
     # Evaluate Ollama RAG
     console.print("\n[bold]2. Evaluating Ollama RAG[/bold]")
     try:
-        ollama_retriever = OllamaRAGRetriever()
+        # Use nomic-embed-text which is a proper embedding model
+        ollama_retriever = OllamaRAGRetriever(embedding_model="nomic-embed-text")
         ollama_metrics = evaluate_retriever(
             "Ollama RAG",
             lambda text, k: ollama_retriever.retrieve_topk(text, k=k),

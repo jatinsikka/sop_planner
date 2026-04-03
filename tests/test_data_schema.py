@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from src.data.schemas import IncidentEntry, Plan, PlanStep, SOPEntry, load_jsonl, SKILLS
+from src.data.schemas import IncidentEntry, Plan, PlanStep, SOPEntry, load_json, SKILLS
 
 
 def test_load_schemas():
-    sops = load_jsonl("src/data/sop_examples.jsonl", SOPEntry)
-    incs = load_jsonl("src/data/incident_examples.jsonl", IncidentEntry)
-    assert len(sops) == 10
-    assert len(incs) == 10
+    sops = load_json("src/data/sop_examples.json", SOPEntry, key="sop_examples")
+    incs = load_json("src/data/incident_examples.json", IncidentEntry, key="incident_examples")
+    assert len(sops) == 100  # Updated for 100 SOP examples
+    assert len(incs) == 100  # Updated for 100 incident examples
     assert isinstance(sops[0].steps, list)
     assert isinstance(incs[0].text, str)
 

@@ -8,7 +8,8 @@ model:
 
 data:
   # With 100 SOPs, we synthesize ~100 training pairs (one per SOP example)
-  train_jsonl: "src/data/sop_examples.jsonl"    # SOPs used to synthesize training pairs (100 examples)
+  train_json: "src/data/sop_examples.json"    # SOPs used to synthesize training pairs (100 examples)
+  train_key: "sop_examples"          # Key in JSON file containing array of SOPs
   validation_split: 0.1              # Fraction of data for validation (future use)
   augment_examples: false            # Enable data augmentation if needed for better generalization
 
@@ -32,10 +33,9 @@ lora:
   r: 32                             # LoRA rank (increased from 16 for larger SOP diversity)
   alpha: 64                          # LoRA scaling factor (alpha / r = 2, controls magnitude)
   dropout: 0.1                       # LoRA dropout rate to prevent overfitting (increased from 0.05)
-  target_modules:                    # Which attention modules to adapt
+  target_modules:                    # Which attention modules to adapt (auto-detected in code)
     - "q"                            # Query projections
     - "v"                            # Value projections
-    - "o"                            # Output projections (decoder)
   # Note: Larger r = more model capacity but slower training/inference
   # For 100 diverse SOPs, r=32 balances capacity and efficiency
 
@@ -53,7 +53,7 @@ output:
   log_dir: "logs/planner"            # Training logs for TensorBoard (optional)
 
 paths:
-  train_data: "src/data/sop_examples.jsonl"
+  train_data: "src/data/sop_examples.json"
   output_dir: "artifacts/planner_lora"
 
 safety:
@@ -61,7 +61,6 @@ safety:
   # These skills can be called by the generated JSON plans
   allowed_skills:
     - walk_to                        # Navigate to location
-    - toggle_valve                   # Open/close valve
     - press_button                   # Press button on machine
     - wait                           # Wait for N seconds
     - read_sensor                    # Read sensor value
@@ -82,8 +81,8 @@ validation:
 # Optional: heuristic settings (used by fallback planner if model fails)
 heuristics:
   # Keywords for heuristic planning fallback
-  valve_keywords: ["valve", "toggle", "open", "close"]
-  press_keywords: ["press", "button", "push"]
+  button_keywords: ["press", "button", "push", "activate"]
+  sensor_keywords: ["read", "check", "sensor", "monitor"]
   # Enable fallback planner if model fails
   fallback_enabled: true
   fallback_timeout_seconds: 5        # Max seconds before fallback kicks in

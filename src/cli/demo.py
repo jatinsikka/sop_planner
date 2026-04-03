@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from src.pipeline.plan_pipeline import run_pipeline
 from src.pipeline.skills import DummyMuJoCoAdapter, execute_plan
 from src.retrieval.infer_retrieve import retrieve_topk
-from src.data.schemas import SOPEntry, load_jsonl
+from src.data.schemas import SOPEntry, load_json
 from src.retrieval.index_utils import build_and_save_index
 
 app = typer.Typer(help="SOP → Planner → MuJoCo Executor demo CLI")
@@ -21,9 +21,14 @@ console = Console()
 
 @app.command()
 def build_index():
-    """Embed SOPs and build FAISS (or fallback) index."""
+    """
+    Build the search index for fast SOP retrieval.
+    
+    This embeds all SOPs using the trained BERT encoder and builds a FAISS index
+    for fast similarity search. Run this after training the retriever.
+    """
     project_root = Path(__file__).parent.parent.parent
-    sops = load_jsonl(str(project_root / "src" / "data" / "sop_examples.jsonl"), SOPEntry)
+    sops = load_json(str(project_root / "src" / "data" / "sop_examples.json"), SOPEntry, key="sop_examples")
     texts = [f"{s.title}. {s.condition}. Steps: " + " ; ".join(s.steps) for s in sops]
     ids = [s.sop_id for s in sops]
     build_and_save_index(texts, ids, str(project_root / "artifacts" / "retriever_bert" / "index"))
@@ -32,7 +37,12 @@ def build_index():
 
 @app.command()
 def retrieve(q: str = typer.Option(..., "--q", help="Incident text"), k: int = 5):
-    """Retrieve top-k SOPs."""
+    """
+    Retrieve the top-k most relevant SOPs for an incident.
+    
+    Uses semantic similarity search to find SOPs that match the incident description.
+    Results are ranked by similarity score (higher = more relevant).
+    """
     hits = retrieve_topk(q, k=k)
     for h in hits:
         console.print(h)
@@ -40,14 +50,24 @@ def retrieve(q: str = typer.Option(..., "--q", help="Incident text"), k: int = 5
 
 @app.command()
 def plan(q: str = typer.Option(..., "--q", help="Incident text")):
-    """Run full pipeline and print JSON plan."""
+    """
+    Run the full pipeline: retrieve SOP → generate plan.
+    
+    Takes an incident description, finds the relevant SOP, and generates
+    a structured JSON plan with robot skills.
+    """
     p = run_pipeline(q, k=5)
     console.print_json(data=json.loads(p.model_dump_json()))
 
 
 @app.command()
 def exec(q: str = typer.Option(..., "--q", help="Incident text")):
-    """Run plan and mock execute with Dummy adapter."""
+    """
+    Run the full pipeline with mock execution.
+    
+    Same as `plan`, but also simulates executing the plan using a dummy
+    robot adapter. This lets you test the plan without a real robot.
+    """
     p = run_pipeline(q, k=5)
     api = DummyMuJoCoAdapter()
     summary = execute_plan(p, api)

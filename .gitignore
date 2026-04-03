@@ -1,3 +1,23 @@
-artifacts/ 
-*.safetensors 
-*.pt 
+# Model artifacts
+artifacts/
+*.safetensors
+*.pt
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# IDE / tools
+.vscode/
+.idea/
+.pytest_cache/
+
+# Archives
+*.zip
+
+# LaTeX build artifacts
+iclr2026/

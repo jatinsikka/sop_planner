@@ -15,9 +15,6 @@ class SkillAPI(ABC):
     def walk_to(self, target: str) -> bool: ...
 
     @abstractmethod
-    def toggle_valve(self, valve: str, position: str) -> bool: ...
-
-    @abstractmethod
     def press_button(self, button: str) -> bool: ...
 
     @abstractmethod
@@ -39,10 +36,6 @@ class SkillAPI(ABC):
 class DummyMuJoCoAdapter(SkillAPI):
     def walk_to(self, target: str) -> bool:
         console.log(f"walk_to: {target}")
-        return True
-
-    def toggle_valve(self, valve: str, position: str) -> bool:
-        console.log(f"toggle_valve: {valve} -> {position}")
         return True
 
     def press_button(self, button: str) -> bool:

@@ -10,7 +10,7 @@ from rich.console import Console
 # Add parent directory to path to enable imports from src
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.data.schemas import SOPEntry, load_jsonl
+from src.data.schemas import SOPEntry, load_json
 from src.retrieval.index_utils import build_and_save_index, load_index, search
 
 console = Console()
@@ -44,20 +44,20 @@ def retrieve_topk(
     # Set default paths relative to project root if not provided
     if sops_path is None:
         project_root = Path(__file__).parent.parent.parent
-        sops_path = str(project_root / "src" / "data" / "sop_examples.jsonl")
+        sops_path = str(project_root / "src" / "data" / "sop_examples.json")
     if index_dir is None:
         project_root = Path(__file__).parent.parent.parent
         index_dir = str(project_root / "artifacts" / "retriever_bert" / "index")
     
-    sops = load_jsonl(sops_path, SOPEntry)
+    sops = load_json(sops_path, SOPEntry, key="sop_examples")
     texts = [_synthesize_text(s) for s in sops]
     ids = [s.sop_id for s in sops]
     out = Path(index_dir)
     if not (out / "embeddings.npy").exists():
         console.log("[yellow]Index not found. Building now...[/yellow]")
         build_and_save_index(texts, ids, out)
-    emb, id_list, faiss_index = load_index(out)
-    results = search([incident_text], emb, id_list, faiss_index, top_k=k*2)[0]  # Get 2x more, then re-rank
+    emb, id_list, faiss_index, embed_type, vectorizer = load_index(out)
+    results = search([incident_text], emb, id_list, faiss_index, top_k=k*2, embed_type=embed_type, vectorizer=vectorizer)[0]  # Get 2x more, then re-rank
     
     id_to_text = {s.sop_id: _synthesize_text(s) for s in sops}
     id_to_sop = {s.sop_id: s for s in sops}
@@ -81,7 +81,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Retrieve top-k SOPs for an incident.")
     p.add_argument("--q", type=str, default="Machine A red light; pressure low")
     p.add_argument("--k", type=int, default=5)
-    p.add_argument("--sops", type=str, default=str(project_root / "src" / "data" / "sop_examples.jsonl"))
+    p.add_argument("--sops", type=str, default=str(project_root / "src" / "data" / "sop_examples.json"))
     p.add_argument("--index_dir", type=str, default=str(project_root / "artifacts" / "retriever_bert" / "index"))
     p.add_argument("--rebuild_index", action="store_true")
     return p
@@ -90,7 +90,7 @@ def build_parser() -> argparse.ArgumentParser:
 if __name__ == "__main__":
     args = build_parser().parse_args()
     if args.rebuild_index:
-        sops = load_jsonl(args.sops, SOPEntry)
+        sops = load_json(args.sops, SOPEntry, key="sop_examples")
         texts = [_synthesize_text(s) for s in sops]
         ids = [s.sop_id for s in sops]
         build_and_save_index(texts, ids, args.index_dir)

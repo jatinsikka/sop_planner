@@ -91,12 +91,14 @@ def predict(pairs: Sequence[Pair]) -> List[Tuple[str, float]]:
                 # Get the [CLS] token embedding (contextualized pair representation)
                 cls_token = model(**enc).last_hidden_state[:, 0, :]  # [CLS] token
                 
-                # Compute cosine similarity between incident and SOP embeddings
-                # This gives a more meaningful relevance score than L2 norm
-                # Better approach: use heuristic scoring which is more interpretable
-                score = _heuristic_score(p.incident, p.sop_text)
+                # Use L2 norm of CLS token as relevance score
+                # Higher norm = more "activated" representation = more relevant
+                score = float(torch.norm(cls_token).item())
                 
                 scores.append((p.sop_id, score))
+        
+        # Sort by score descending (higher = more relevant)
+        scores.sort(key=lambda x: x[1], reverse=True)
         return scores
     except Exception as e:
         # Graceful fallback if DeBERTa is unavailable (e.g., missing dependencies)

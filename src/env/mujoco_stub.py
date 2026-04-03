@@ -13,11 +13,6 @@ class MuJoCoAdapter(SkillAPI):
         console.log(f"[MJCF] walk_to: {target} (mock)")
         return True
 
-    def toggle_valve(self, valve: str, position: str) -> bool:
-        act = f"act_valve_{valve}"
-        console.log(f"[MJCF] toggle valve actuator {act} -> {position} (mock)")
-        return True
-
     def press_button(self, button: str) -> bool:
         act = f"act_{button}"
         console.log(f"[MJCF] press button {act} (mock)")

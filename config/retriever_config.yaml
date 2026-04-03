@@ -7,7 +7,8 @@ model:
   
 # Data settings
 data:
-  train_jsonl: "src/data/sop_examples.jsonl"  # Path to training data (100 SOPs)
+  train_json: "src/data/sop_examples.json"  # Path to training data (100 SOPs)
+  train_key: "sop_examples"       # Key in JSON file containing array of SOPs
   validation_split: 0.1          # Fraction for validation set
   
 # Training settings

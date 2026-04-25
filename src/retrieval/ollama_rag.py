@@ -59,7 +59,7 @@ class OllamaRAGRetriever:
             cache_dir: Directory to cache embeddings (default: artifacts/ollama_rag)
         """
         self.host = host or os.getenv("OLLAMA_HOST", "http://localhost:11434")
-        self.embedding_model = embedding_model or os.getenv("OLLAMA_EMBED_MODEL", "gemma3:4b")
+        self.embedding_model = embedding_model or os.getenv("OLLAMA_EMBED_MODEL", "nomic-embed-text")
         
         # Verify Ollama is accessible
         self._verify_ollama_connection()
@@ -289,7 +289,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--k", type=int, default=5, help="Number of top SOPs to retrieve")
     p.add_argument("--sops", type=str, default=str(project_root / "src" / "data" / "sop_examples.json"), help="Path to SOP examples JSON")
     p.add_argument("--host", type=str, default=None, help="Ollama host URL (default: http://localhost:11434)")
-    p.add_argument("--model", type=str, default=None, help="Ollama embedding model (default: gemma3:4b)")
+    p.add_argument("--model", type=str, default=None, help="Ollama embedding model (default: nomic-embed-text)")
     p.add_argument("--cache_dir", type=str, default=None, help="Cache directory for embeddings")
     p.add_argument("--rebuild", action="store_true", help="Rebuild embeddings cache")
     return p

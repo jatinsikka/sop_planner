@@ -1,109 +1,99 @@
 # SOP-Guided Robotic Task Planning
 
-An end-to-end system that retrieves Standard Operating Procedures (SOPs) from natural language incident descriptions and generates executable robot plans. Built as the "brain" of a larger autonomous robotics project — this repo handles perception-to-plan, while the physical execution runs on a [Unitree G1 humanoid via MuJoCo](https://github.com/jatinsikka/mujoco_G1_AMO).
+End-to-end system that retrieves Standard Operating Procedures (SOPs) from natural-language incident descriptions and generates structured robot plans. Built as the "brain" of a larger autonomous robotics project — this repo handles perception-to-plan; physical execution runs on a [Unitree G1 humanoid via MuJoCo](https://github.com/jatinsikka/mujoco_G1_AMO).
 
-> **Status:** Active development. The DL pipeline is functional; integration with the MuJoCo execution side is ongoing.
-
-## How It Works
+## Pipeline
 
 ```
-Incident Description ──► Dual-Encoder Retriever ──► Top-K SOPs ──► LoRA Planner ──► JSON Plan ──► Robot Execution
-                           (BERT + InfoNCE)           (FAISS)       (Flan-T5)        (7 skills)     (MuJoCo stub)
+Incident text ──► BGE-small dual-encoder ──► Top-K SOPs ──► Qwen2.5 + LoRA ──► JSON plan ──► Robot
+                  (sentence-transformers)     (FAISS IP)     (causal LM)        (7 skills)
 ```
 
-1. **Retrieval** — A dual-encoder BERT model, trained with contrastive learning (InfoNCE loss), encodes incident text and SOP documents into a shared embedding space. FAISS indexes all SOPs for sub-millisecond lookup.
-2. **Planning** — A Flan-T5 model fine-tuned with LoRA takes the retrieved SOP and generates a structured JSON plan constrained to 7 robot primitives (`walk_to`, `press_button`, `wait`, `read_sensor`, `pick`, `place`, `notify`).
-3. **Execution** — Plans are validated against a skill whitelist and dispatched to a MuJoCo skill API (currently mocked; real integration via the companion repo).
+1. **Retrieval** — `BAAI/bge-small-en-v1.5` (33M params) is fine-tuned on labelled (incident, SOP) pairs with `MultipleNegativesRankingLoss` (the InfoNCE objective). FAISS holds normalized embeddings; cosine = inner product.
+2. **Planning** — `Qwen/Qwen2.5-0.5B-Instruct` (494M params) with a LoRA adapter (`r=16`, attention `q/k/v/o_proj`) is trained to emit a JSON plan. JSON is parsed with `json-repair` so truncated or quote-mangled output still validates.
+3. **Execution** — Plans are validated against the seven-skill whitelist (`walk_to`, `press_button`, `wait`, `read_sensor`, `pick`, `place`, `notify`) and dispatched to a MuJoCo skill API (mocked in `DummyMuJoCoAdapter`).
 
-## Results
+## Why this stack
 
-| Model | Recall@1 | Recall@5 | MRR | Latency |
-|-------|----------|----------|-----|---------|
-| **Trained Dual-Encoder BERT** | **0.96** | **0.99** | **0.98** | **58ms** |
-| TF-IDF (baseline) | 0.96 | 0.99 | 0.98 | 1.6ms |
-| Pretrained BERT (zero-shot) | 0.22 | 0.50 | 0.31 | 60ms |
-| Ollama RAG (zero-shot) | 0.95 | 1.00 | 0.97 | 2297ms |
-
-| Planner Metric | Heuristic Baseline | Flan-T5 + LoRA |
-|----------------|-------------------|----------------|
-| Plan F1 | 0.45 | **0.78** |
-| Execution Success | 0.60 | **0.95** |
-| Valid JSON Rate | 0.80 | **0.98** |
-
-Training the dual-encoder on just 100 SOPs improves Recall@1 by **336%** over pretrained BERT. The LoRA planner trains only **0.2%** of parameters (0.5M / 250M) and achieves 78% F1.
-
-## Dataset
-
-100 synthetic manufacturing SOPs across three categories:
-- **Machine Control** (SOP-001 to SOP-020): Pressure warnings, temperature alerts, startup/shutdown
-- **Table Manipulation** (SOP-021 to SOP-060): Object handling, tool management, part organization
-- **Complex Workflows** (SOP-061 to SOP-100): Multi-step emergency procedures, conditional logic
-
-Plus 100 incident examples with ground-truth SOP labels for evaluation.
+- **Zero-cost / offline.** Both models run on CPU. No paid APIs, no GPU required for inference.
+- **Modern small models.** BGE-small and Qwen2.5-0.5B are state-of-the-art among models in their size class as of 2025-26 — and small enough to ship.
+- **Heuristic fallback.** If the LoRA adapter is missing or generation fails, a deterministic SOP-step → skill mapper still produces an executable plan. The pipeline never crashes.
 
 ## Quickstart
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+source .venv/bin/activate           # Windows: .venv\Scripts\Activate.ps1
+make install
 
-# Train retriever (dual-encoder BERT) — ~2-5 min
-python src/retrieval/build_dual_encoder.py
+make train-retriever                # fine-tune BGE-small on incident↔SOP pairs (~2 min CPU)
+make train-planner                  # LoRA-tune Qwen2.5-0.5B (~10 min CPU, faster on GPU)
+make build-index                    # embed SOPs + write FAISS index
 
-# Train planner (Flan-T5 + LoRA) — ~1-2 min
-python src/planner/train_planner_lora.py
-
-# Build FAISS index
-python src/cli/demo.py build-index
-
-# Run full pipeline
-python src/cli/demo.py plan --q "Machine A pressure is low"
-
-# Run with execution
-python src/cli/demo.py exec --q "Machine A pressure is low"
-
-# Evaluate on all 100 incidents
-python src/eval/evaluate_all.py
+make plan Q="Machine A pressure is low"
+make exec Q="Machine A pressure is low"
+make eval                           # full retrieval + planning eval over 100 incidents
+make test                           # pytest
 ```
 
-## Project Structure
+You can run `make plan` without training first — the heuristic planner runs and the index is built on demand from the zero-shot BGE encoder.
+
+## Results
+
+Measured on all 100 labelled incidents (`make eval`), zero-shot encoder + heuristic planner (no training required):
+
+| Metric | Value |
+|--------|------:|
+| Retrieval Recall@1 | 0.960 |
+| Retrieval Recall@5 | 0.990 |
+| Retrieval MRR | 0.975 |
+| Plan F1 (vs SOP-derived reference, n=100) | 0.995 |
+| Execution success rate | 1.000 |
+| Valid plan rate | 1.000 |
+
+Reference plans are derived from each gold SOP by the same heuristic mapper used as the planner's fallback, so this measures *retrieval correctness × plan well-formedness* end-to-end. Training the LoRA planner is optional and only matters once SOPs are diverse enough that the heuristic cannot cover them.
+
+## Dataset
+
+100 synthetic manufacturing SOPs across three categories:
+- **Machine Control** (SOP-001 — SOP-020): pressure / temperature alerts, startup, shutdown
+- **Table Manipulation** (SOP-021 — SOP-060): object handling, tool / part organization
+- **Complex Workflows** (SOP-061 — SOP-100): multi-step emergencies, conditional logic
+
+Plus 100 incident examples with ground-truth SOP labels for evaluation.
+
+## Project structure
 
 ```
 src/
-├── retrieval/          # Dual-encoder BERT, FAISS indexing, Ollama RAG baseline
-├── planner/            # Flan-T5 + LoRA training and inference
-├── pipeline/           # End-to-end plan pipeline, skill definitions
-├── eval/               # Evaluation scripts, metrics, baseline comparisons
+├── retrieval/          # BGE-small training, FAISS index, optional Ollama RAG baseline
+├── planner/            # Qwen2.5 + LoRA training, inference, JSON repair
+├── pipeline/           # Plan orchestration + skill API
+├── eval/               # Retrieval / planning metrics, baselines
 ├── data/               # 100 SOPs + 100 incidents (JSON)
-├── cli/                # Typer CLI (build-index, retrieve, plan, exec)
-├── env/                # MuJoCo skill API (stub)
-└── ner/                # Token labeling utilities
+└── cli/                # Typer CLI: build-index, retrieve, plan, exec
 config/                 # Training hyperparameters (YAML)
-artifacts/              # Trained model checkpoints and FAISS index (gitignored)
-tests/                  # Unit tests
+artifacts/              # Trained encoders, LoRA adapter, FAISS index (gitignored)
+tests/                  # Schema, JSON repair, retrieval, integration, execution
 ```
 
-## Architecture Details
+## Architecture details
 
-| Component | Model | Details |
-|-----------|-------|---------|
-| Retriever | BERT-base-uncased (110M params) | Dual-encoder, InfoNCE loss, 50 epochs, batch size 8 |
-| Planner | Flan-T5-base (250M params) | LoRA r=32, alpha=64, 10 epochs, batch size 4 |
-| Reranker | DeBERTa-v3-base | Cross-encoder for precision reranking of top-K |
-| Index | FAISS | Flat index over 768-dim SOP embeddings |
+| Component | Model | Notes |
+|-----------|-------|-------|
+| Retriever | `BAAI/bge-small-en-v1.5` (33M) | Fine-tuned with `MultipleNegativesRankingLoss` on labelled pairs |
+| Planner   | `Qwen/Qwen2.5-0.5B-Instruct` (494M) | LoRA adapter, attention-only targets, ~0.5% of params trained |
+| Reranker  | `cross-encoder/ms-marco-MiniLM-L-6-v2` (22M) | Optional, off by default |
+| Index     | FAISS `IndexFlatIP` | Cosine via normalized embeddings; numpy fallback if FAISS missing |
+| JSON parse | `json-repair` | Recovers from truncated / single-quoted / fenced output |
 
-Configuration is driven by `config/retriever_config.yaml` and `config/planner_config.yaml`. CLI arguments override config values.
+Configuration lives in `config/retriever_config.yaml` and `config/planner_config.yaml`. CLI flags override config values.
 
-## Related Repo
+## Related repo
 
-This project is the planning/DL side of a larger autonomous robotics system:
-
-- **This repo (`sop_planner`)** — SOP retrieval + plan generation (the "brain")
-- **[`mujoco_G1_AMO`](https://github.com/jatinsikka/mujoco_G1_AMO)** — Unitree G1 locomotion + manipulation in MuJoCo (the "body")
-
-The planner outputs structured JSON plans that map to robot primitives executable by the MuJoCo environment.
+- **This repo (`sop_planner`)** — SOP retrieval + plan generation
+- **[`mujoco_G1_AMO`](https://github.com/jatinsikka/mujoco_G1_AMO)** — Unitree G1 locomotion + manipulation in MuJoCo
 
 ## Paper
 
-See [`DL_Project_report.pdf`](DL_Project_report.pdf) for the full writeup, including ablation studies and error analysis.
+See [`DL_Project_report.pdf`](DL_Project_report.pdf) for the writeup. Note: numbers in the original PDF reference an earlier BERT/Flan-T5 stack; the codebase has since been modernized to BGE-small + Qwen2.5.
